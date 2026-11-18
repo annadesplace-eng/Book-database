@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Karla:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4EFE6; --paper-2:#ECE5D8; --paper-3:#E3D9C7; --card:#FBF8F2;
+  --ink:#2B251E; --ink-soft:#4A4136; --muted:#857A6C; --hair:#DDD3C2; --hair-2:#CFC3AE;
+  --umber:#8A6A4B; --glow:rgba(255,238,210,.85); --shade:rgba(92,68,42,.22);
+  --serif:"Cormorant Garamond",Garamond,"Times New Roman",serif;
+  --sans:Karla,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Space Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --slow:cubic-bezier(.22,.61,.36,1);
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;color:var(--ink);font:15px/1.6 var(--sans);overflow-x:hidden;
+  background:radial-gradient(900px 520px at 18% -8%,var(--glow),transparent 70%),radial-gradient(800px 600px at 92% 12%,rgba(240,222,200,.55),transparent 70%),var(--paper)}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;opacity:.35;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .45  0 0 0 0 .32  0 0 0 .09 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>")}
+button,input,textarea{font:inherit;color:inherit}
+img{max-width:100%}
+:focus-visible{outline:1px solid var(--umber);outline-offset:4px}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:400}
+.label,.pill span,dt,.tags span,.caption .label,.meta .when{font:400 10px/1.4 var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+
+/* ---------- Page chrome ---------- */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--paper)}
+.stage-wrap{transition:filter 1.1s var(--slow),opacity 1.1s var(--slow)}
+body.detail-open .stage-wrap{filter:blur(14px) saturate(.85);opacity:.7}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:25;background:rgba(244,239,230,.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--hair)}
+.bar{display:flex;align-items:center;gap:1rem;max-width:1440px;margin:0 auto;padding:.85rem clamp(1.25rem,4vw,3rem)}
+.brand{font:italic 400 1.6rem/1 var(--serif);letter-spacing:.01em;margin:0;color:var(--ink)}
+.bar .spacer{flex:1}
+.btn{border:1px solid var(--hair-2);background:transparent;border-radius:999px;padding:.55rem 1.15rem;cursor:pointer;color:var(--ink);transition:border-color .6s var(--slow),background .6s var(--slow)}
+.btn:hover{border-color:var(--ink)}
+.btn.brass{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn.brass:hover{background:var(--ink-soft)}
+.btn.brass:disabled{opacity:.55;cursor:default}
+main{max-width:1440px;margin:0 auto;padding:0 clamp(1.25rem,4vw,3rem) 6rem}
+
+/* ---------- Ask ---------- */
+.ask{padding:clamp(3rem,9vw,7rem) 0 1.5rem;text-align:center;animation:rise 1.8s var(--slow) both}
+.ask h2{margin:0 0 1.75rem;font-size:clamp(2.8rem,7.5vw,6.2rem);font-weight:300;line-height:.95;letter-spacing:-.015em}
+.askbox{display:flex;gap:.5rem;align-items:center;max-width:720px;margin:0 auto;padding:.35rem .35rem .35rem 1.25rem;border-radius:999px;background:rgba(251,248,242,.7);border:1px solid var(--hair);box-shadow:0 18px 40px -28px var(--shade);transition:border-color .8s var(--slow),box-shadow .8s var(--slow)}
+.askbox input{flex:1;min-width:0;border:0;background:transparent;padding:.55rem 0;font-size:1.02rem}
+.askbox input::placeholder{color:var(--muted)}
+.askbox input:focus{outline:none}
+.askbox:focus-within{border-color:var(--hair-2);box-shadow:0 22px 50px -26px var(--shade)}
+.answer{min-height:1.8rem;margin:1.1rem auto 0;max-width:720px;color:var(--ink-soft);font:italic 400 1.3rem/1.4 var(--serif);transition:opacity 1s var(--slow)}
+.answer button{font:400 .85rem var(--sans);font-style:normal;margin-left:.6rem}
+.link{background:none;border:0;padding:0;color:var(--ink-soft);cursor:pointer;text-decoration:underline;text-decoration-color:var(--hair-2);text-underline-offset:4px}
+.link:hover{text-decoration-color:var(--ink)}
+
+.pills{display:flex;gap:.4rem;overflow-x:auto;padding:.75rem 24px 1.5rem;margin:0 -24px;scrollbar-width:none;mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent)}
+.pills::-webkit-scrollbar{display:none}
+.pill{flex:none;display:inline-flex;align-items:baseline;gap:.45rem;border:1px solid var(--hair);background:transparent;border-radius:999px;padding:.4rem .95rem;cursor:pointer;font-size:.88rem;white-space:nowrap;color:var(--ink-soft);transition:background .7s var(--slow),color .7s var(--slow),border-color .7s var(--slow)}
+.pill:hover{border-color:var(--hair-2)}
+.pill[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.pill[aria-pressed="true"] span{color:rgba(244,239,230,.6)}
+
+/* ---------- Stage & rails ---------- */
+.shelf-title{display:flex;align-items:baseline;gap:1.25rem;flex-wrap:wrap;margin:4.5rem 0 .5rem}
+.shelf-title h3{margin:0;font-size:clamp(2rem,3.6vw,2.9rem);font-weight:300;letter-spacing:-.01em}
+.shelf-title p{margin:0;color:var(--muted)}
+.shelf-title .btn{margin-left:auto}
+.rail{position:relative;height:380px;overflow:hidden;cursor:grab;touch-action:pan-y;user-select:none;
+  mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
+  background:radial-gradient(60% 70% at 50% 100%,rgba(227,217,199,.9),transparent 75%)}
+.rail.small{height:330px}
+.rail.dragging{cursor:grabbing}
+.track{position:absolute;inset:0;perspective:1500px;perspective-origin:50% 25%}
+.plank{height:1px;margin-top:-14px;background:linear-gradient(90deg,transparent,var(--hair-2) 15%,var(--hair-2) 85%,transparent);position:relative}
+.arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:42px;height:42px;border-radius:50%;cursor:pointer;color:var(--ink-soft);font:300 1.4rem/1 var(--serif);
+  background:rgba(251,248,242,.75);border:1px solid var(--hair);backdrop-filter:blur(6px);opacity:.75;transition:opacity .7s var(--slow)}
+.arrow:hover{opacity:1}
+.arrow.l{left:5%}.arrow.r{right:5%}
+.rail-empty{position:absolute;inset:0;pointer-events:none;display:grid;place-items:center;color:var(--muted);text-align:center;padding:2rem;font:italic 400 1.4rem var(--serif)}
+.caption{margin:1.1rem 0 0;color:var(--muted);font-size:.88rem;text-align:center}
+.caption .label{margin-right:.75rem;color:var(--ink-soft)}
+
+/* ---------- 3D books ---------- */
+.b3d{position:absolute;left:0;bottom:26px;width:var(--w);height:var(--h);padding:0;border:0;background:none;cursor:pointer;transform-style:preserve-3d;will-change:transform}
+.shadow{position:absolute;left:-12%;right:-40%;bottom:-14px;height:22px;border-radius:50%;background:radial-gradient(closest-side,var(--shade),transparent);filter:blur(5px);transition:transform 1.4s var(--slow),opacity 1.4s var(--slow)}
+.float{position:absolute;inset:0;transform-style:preserve-3d;animation:drift 9s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+.bk{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateY(30deg);transition:transform 1.3s var(--slow)}
+.face{position:absolute;backface-visibility:hidden}
+.front{inset:0;transform:translateZ(calc(var(--d) / 2));border-radius:1px 3px 3px 1px;overflow:hidden;background:var(--spine)}
+.front img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.front::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(40,25,10,.22),rgba(255,250,240,.18) 5%,rgba(0,0,0,0) 11%,rgba(0,0,0,0) 86%,rgba(40,25,10,.1)),linear-gradient(to bottom,rgba(255,248,235,.12),transparent 40%)}
+.back{inset:0;transform:rotateY(180deg) translateZ(calc(var(--d) / 2));background:var(--spine)}
+.spine{top:0;height:100%;width:var(--d);left:calc(50% - var(--d) / 2);transform:rotateY(-90deg) translateZ(calc(var(--w) / 2));color:var(--spine-ink);
+  background:linear-gradient(90deg,rgba(40,25,10,.22),rgba(255,250,240,.16) 42%,rgba(40,25,10,.2)),var(--spine);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.spine span{writing-mode:vertical-rl;transform:rotate(180deg);font:500 12px/1 var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-height:calc(100% - 28px);letter-spacing:.04em}
+.pages{top:3px;height:calc(100% - 6px);width:calc(var(--d) - 2px);left:calc(50% - var(--d) / 2 + 1px);transform:rotateY(90deg) translateZ(calc(var(--w) / 2 - 3px));
+  background:repeating-linear-gradient(90deg,#F7F2E7 0 1px,#E4DCCB 1px 2px)}
+.topf{left:0;width:calc(var(--w) - 3px);height:var(--d);top:calc(var(--d) / -2);transform:rotateX(90deg);background:#EFE8DA}
+.b3d:hover,.b3d:focus-visible,.b3d.hot{z-index:3}
+.b3d:hover .bk,.b3d:focus-visible .bk{transform:translateZ(130px) translateY(-26px) rotateY(8deg)}
+.b3d:hover .shadow,.b3d:focus-visible .shadow{transform:scale(1.25,1.1) translateX(-8%);opacity:.55}
+.b3d.pull .bk{transform:translateZ(320px) translateY(-70px) rotateY(0deg);transition-duration:1s}
+.b3d.pull{opacity:0;transition:opacity .9s var(--slow) .35s}
+.b3d.arrive{animation:arrive 1.6s var(--slow) both}
+@keyframes arrive{from{transform:var(--x) translateY(-46px);opacity:0}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@keyframes fade{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ---------- Hover card ---------- */
+.meta{position:fixed;z-index:22;width:270px;padding:1.1rem 1.2rem 1.15rem;border-radius:4px;background:rgba(251,248,242,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--hair);color:var(--ink);pointer-events:none;
+  box-shadow:0 30px 60px -30px var(--shade);opacity:0;transform:translateY(10px);transition:opacity .9s var(--slow),transform 1.1s var(--slow)}
+.meta.show{opacity:1;transform:none}
+.meta h4{margin:0 0 .2rem;font:400 1.5rem/1.08 var(--serif)}
+.meta .by{margin:0 0 .85rem;color:var(--ink-soft);font:italic 400 1.05rem var(--serif)}
+.meta dl{display:grid;grid-template-columns:auto 1fr;gap:.35rem 1rem;margin:0;font-size:.84rem;align-items:baseline}
+.meta dd{margin:0}
+.tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.85rem}
+.tags span{padding:.18rem .55rem;border-radius:999px;border:1px solid var(--hair);font-size:9px}
+.stars{color:var(--umber);letter-spacing:.08em;font-size:.8rem}.stars .off{opacity:.25}
+
+/* ---------- Detail ---------- */
+.detail{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 1.5rem) 1.5rem calc(env(safe-area-inset-bottom,0px) + 1.5rem);overflow-y:auto;
+  background:radial-gradient(70% 70% at 40% 40%,rgba(251,246,236,.75),rgba(240,232,218,.6));opacity:0;transition:opacity 1.1s var(--slow)}
+.detail.show{opacity:1}
+.detail .inner{display:grid;grid-template-columns:minmax(220px,380px) minmax(0,620px);gap:clamp(2rem,5vw,5rem);align-items:center;max-width:1120px}
+.detail .cover{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:1px 4px 4px 1px;box-shadow:6px 0 0 -3px #F2ECDF,9px 1px 0 -4px #DDD3BF,0 50px 80px -40px rgba(70,48,25,.55),0 18px 30px -20px rgba(70,48,25,.35);background:var(--paper-3)}
+.detail .cover.hide{visibility:hidden}
+.detail .text > *{animation:rise 1.4s var(--slow) both}
+.detail .text > *:nth-child(2){animation-delay:.12s}.detail .text > *:nth-child(3){animation-delay:.22s}.detail .text > *:nth-child(4){animation-delay:.32s}.detail .text > *:nth-child(5){animation-delay:.42s}.detail .text > *:nth-child(6){animation-delay:.52s}
+.detail h2{margin:0;font-size:clamp(2.8rem,6.8vw,6rem);line-height:.92;font-weight:300;letter-spacing:-.02em;text-wrap:balance}
+.detail .by{margin:1rem 0 1.5rem;font:italic 400 clamp(1.25rem,2vw,1.6rem) var(--serif);color:var(--ink-soft)}
+.detail dl{display:grid;grid-template-columns:auto 1fr;gap:.45rem 1.5rem;margin:0 0 1rem;font-size:.92rem;align-items:baseline}
+.detail dd{margin:0}
+.detail .desc{font:400 1.18rem/1.65 var(--serif);max-width:58ch;color:var(--ink-soft);max-height:11em;overflow-y:auto;margin:1.25rem 0;mask-image:linear-gradient(to bottom,#000 80%,transparent)}
+.detail .actions{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center}
+.detail .note{font:italic 400 1.35rem/1.5 var(--serif);border-left:1px solid var(--hair-2);padding-left:1.1rem;margin:1rem 0 1.25rem;color:var(--ink-soft)}
+@media (max-width:760px){.detail .inner{grid-template-columns:1fr;justify-items:center}.detail .cover{width:190px}.detail .text{width:100%}}
+.flyer{position:fixed;z-index:45;object-fit:cover;border-radius:1px 4px 4px 1px;pointer-events:none;box-shadow:0 40px 60px -30px rgba(70,48,25,.5)}
+
+/* ---------- Recommend drawer ---------- */
+.scrim{position:fixed;inset:0;background:rgba(236,228,214,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:35;animation:fade .9s var(--slow)}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(460px,100%);z-index:36;background:var(--card);color:var(--ink);display:flex;flex-direction:column;border-left:1px solid var(--hair);
+  padding:calc(env(safe-area-inset-top,0px) + 1.75rem) 1.75rem calc(env(safe-area-inset-bottom,0px) + 1.5rem);box-shadow:-30px 0 60px -40px var(--shade);animation:drawerin 1s var(--slow)}
+@keyframes drawerin{from{transform:translateX(24px);opacity:0}}
+.drawer h3{margin:0;font-size:2.3rem;font-weight:300}
+.drawer p.sub{margin:.4rem 0 1.5rem;color:var(--muted)}
+.drawer .close{position:absolute;right:1.5rem;top:calc(env(safe-area-inset-top,0px) + 1.5rem)}
+.field{display:block;margin-bottom:1rem}
+.field span{display:block;margin-bottom:.4rem}
+.field input,.field textarea{width:100%;padding:.65rem .85rem;border:1px solid var(--hair);border-radius:4px;background:var(--paper);color:var(--ink);transition:border-color .6s var(--slow)}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--hair-2)}
+.field textarea{min-height:5.5rem;resize:vertical}
+.results{flex:1;overflow-y:auto;margin:0 -.5rem;padding:0 .5rem}
+.result{display:grid;grid-template-columns:42px 1fr;gap:.9rem;align-items:center;width:100%;padding:.55rem .5rem;border:0;border-bottom:1px solid var(--hair);background:none;text-align:left;cursor:pointer;color:var(--ink);animation:rise .9s var(--slow) both;transition:background .6s var(--slow)}
+.result:hover{background:var(--paper)}
+.result img,.result .noimg{width:42px;height:62px;object-fit:cover;border-radius:1px;background:var(--paper-3)}
+.result b{display:block;font:400 1.2rem/1.1 var(--serif)}
+.chosen{display:grid;grid-template-columns:96px 1fr;gap:1.1rem;margin-bottom:1.25rem;animation:rise 1.1s var(--slow) both}
+.chosen img{width:96px;aspect-ratio:2/3;object-fit:cover;border-radius:1px 3px 3px 1px;box-shadow:0 20px 30px -20px rgba(70,48,25,.5);background:var(--paper-3)}
+.chosen b{font:400 1.6rem/1.05 var(--serif);display:block;margin-bottom:.3rem}
+.msg{font-size:.88rem;color:var(--muted);margin:.6rem 0}
+.msg.err{color:#8A3B2C}
+.status{max-width:40rem;margin:6rem auto;text-align:center;animation:rise 1.6s var(--slow) both}
+.status h2{font-size:2.8rem;font-weight:300}
+.status p{color:var(--muted)}
+.status code{font:12px var(--mono);background:var(--paper-2);padding:.1rem .35rem;border-radius:3px;word-break:break-all}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<div class="stage-wrap">
+<header class="top"><div class="bar">
+  <h1 class="brand">The Library</h1><span class="spacer"></span>
+  <button class="btn brass" id="openRec">Recommend a book</button>
+</div></header>
+<main id="app"><div class="status"><h2>Opening the doors…</h2><p>Fetching the catalogue.</p></div></main>
+</div>
+<div class="meta" id="meta" role="tooltip"></div>
+<div id="overlay"></div>
+
+<script>
+/* ============ SETTINGS ============ */
+const SUPABASE_URL = "https://sgnazidypdfkgduggrvl.supabase.co";
+const SUPABASE_KEY = "sb_publishable_shqb4uQpXv9HFAX6pSbJ2Q_H37_lIUz";
+/* ================================== */
+
+const SLOT = 128;             // horizontal space per book
+const REDUCE = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const PALETTE = ["#B9A58A","#C9B6A2","#9E8B76","#D8C9B2","#A89482","#B7A28F","#C2AE95","#8F7F6E","#D3C1AA","#A99B86","#BFA48E","#9C8F7C"];
+const S = { books:[], genres:[], genre:"", ai:null, recs:[] };
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const hash = s => { let h = 2166136261; for (const c of String(s)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+const gbp = n => n == null ? "–" : "£" + Number(n).toFixed(2);
+const stars = r => r ? `<span class="stars" aria-label="${r} out of 5 stars">${"★".repeat(r)}<span class="off">${"★".repeat(5-r)}</span></span>` : "Not rated";
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const api = (path, opts = {}) => fetch(`${SUPABASE_URL}${path}`, { ...opts, headers:{ apikey:SUPABASE_KEY, "Content-Type":"application/json", ...(opts.headers||{}) } });
+
+/* ---------- Spine colours sampled from cover art ---------- */
+const colorCache = new Map();
+function inkFor(hex){ const n = parseInt(hex.slice(1),16), l = (0.299*(n>>16) + 0.587*((n>>8)&255) + 0.114*(n&255)) / 255; return l > .55 ? "#2B251E" : "#F6EFE2"; }
+function sampleSpine(url){
+  if (!url || colorCache.has(url)) return;
+  colorCache.set(url, null);
+  const im = new Image(); im.crossOrigin = "anonymous";
+  im.onload = () => {
+    try {
+      const c = document.createElement("canvas"); c.width = 6; c.height = 12;
+      const x = c.getContext("2d"); x.drawImage(im, 0, 0, 6, 12);
+      const d = x.getImageData(0, 0, 2, 12).data; let r=0,g=0,b=0;
+      for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i+1]; b += d[i+2]; }
+      const n = d.length / 4, k = .92;
+      const hex = "#" + [r,g,b].map(v => Math.round(v / n * k).toString(16).padStart(2,"0")).join("");
+      colorCache.set(url, hex);
+      document.querySelectorAll(`.b3d[data-cover="${CSS.escape(url)}"]`).forEach(el => { el.style.setProperty("--spine", hex); el.style.setProperty("--spine-ink", inkFor(hex)); });
+    } catch (_) {}
+  };
+  im.src = url;
+}
+
+/* ---------- Open Library: author, year, binding, subjects ---------- */
+let olCache = {};
+try { olCache = JSON.parse(localStorage.getItem("ol-cache") || "{}"); } catch (_) {}
+const olPending = new Map();
+const norm = s => String(s).toLowerCase().replace(/\(.*?\)|:.*$/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+function enrich(book){
+  if (olCache[book.upc]) return Promise.resolve(olCache[book.upc]);
+  if (olPending.has(book.upc)) return olPending.get(book.upc);
+  const p = (async () => {
+    let info = { none:true };
+    try {
+      const q = norm(book.title);
+      const r = await fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(q)}&limit=5&fields=key,title,author_name,first_publish_year,subject,cover_edition_key,edition_key`);
+      const docs = (await r.json()).docs || [];
+      const doc = docs.find(d => { const t = norm(d.title); return t && (t === q || t.startsWith(q) || q.startsWith(t)); });
+      if (doc) {
+        info = { author:(doc.author_name||[]).slice(0,2).join(", ") || null, year:doc.first_publish_year || null, subjects:(doc.subject||[]).filter(s => s.length < 28).slice(0,3), binding:null };
+        const ed = doc.cover_edition_key || (doc.edition_key||[])[0];
+        if (ed) { try { const e = await (await fetch(`https://openlibrary.org/books/${ed}.json`)).json(); info.binding = e.physical_format || null; } catch (_) {} }
+      }
+    } catch (_) { return { none:true, offline:true }; }
+    olCache[book.upc] = info;
+    try { localStorage.setItem("ol-cache", JSON.stringify(olCache)); } catch (_) {}
+    return info;
+  })();
+  olPending.set(book.upc, p);
+  return p;
+}
+
+/* ---------- Items shown on rails ---------- */
+const bookItem = b => ({ key:"b"+b.id, kind:"book", title:b.title, cover:b.image_url, h:176 + hash(b.title) % 22, d:Math.round(18 + Math.min((b.description||"").length, 1600) / 1600 * 22), src:b });
+const recItem = r => ({ key:"r"+r.id, kind:"rec", title:r.title, cover:r.cover_url, h:180 + hash(r.title) % 18, d:28, src:r });
+
+/* ---------- Infinite 3D rail ---------- */
+class Rail {
+  constructor(root, { speed = 26 } = {}){
+    this.root = root; this.track = root.querySelector(".track"); this.items = []; this.pool = new Map();
+    this.offset = 0; this.vel = 0; this.speed = speed; this.hover = false; this.hold = false; this.last = performance.now();
+    root.querySelector(".arrow.l").onclick = () => { this.vel -= 420; };
+    root.querySelector(".arrow.r").onclick = () => { this.vel += 420; };
+    root.addEventListener("wheel", e => { if (this.static) return; const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0); if (d) { e.preventDefault(); this.offset += d; } }, { passive:false });
+    let sx = 0, so = 0, moved = 0;
+    root.addEventListener("pointerdown", e => { if (this.static || e.target.closest(".arrow") || e.pointerType === "mouse" && e.button) return; sx = e.clientX; so = this.offset; moved = 0; this.drag = true; });
+    addEventListener("pointermove", e => { if (!this.drag) return; const dx = e.clientX - sx; moved = Math.max(moved, Math.abs(dx)); if (moved > 6) { root.classList.add("dragging"); this.offset = so - dx; hideMeta(); } });
+    addEventListener("pointerup", () => { if (!this.drag) return; this.drag = false; root.classList.remove("dragging"); this.justDragged = moved > 6; setTimeout(() => this.justDragged = false, 50); });
+    root.addEventListener("pointerover", e => { const el = e.target.closest(".b3d"); if (el && !this.drag) { this.hover = true; showMeta(el, this.itemOf(el)); } });
+    root.addEventListener("pointerout", e => { const el = e.target.closest(".b3d"); if (el && !el.contains(e.relatedTarget)) { this.hover = false; hideMeta(); } });
+    root.addEventListener("focusin", e => { const el = e.target.closest(".b3d"); if (el) { this.hover = true; showMeta(el, this.itemOf(el)); } });
+    root.addEventListener("focusout", () => { this.hover = false; hideMeta(); });
+    root.addEventListener("click", e => { const el = e.target.closest(".b3d"); if (el && !this.justDragged) openDetail(el, this.itemOf(el)); });
+    new ResizeObserver(() => this.layout()).observe(root);
+    requestAnimationFrame(t => this.tick(t));
+  }
+  itemOf(el){ return this.items.find(i => i.key === el.dataset.key); }
+  setItems(items){ this.items = items; this.pool.forEach(el => el.remove()); this.pool.clear(); this.offset = 0; this.vel = 0; this.layout(); }
+  layout(){
+    const w = this.root.clientWidth;
+    this.static = this.items.length * SLOT <= w - 120;
+    this.root.querySelectorAll(".arrow").forEach(a => a.hidden = this.static || !this.items.length);
+    this.root.querySelector(".rail-empty").hidden = !!this.items.length;
+    this.draw();
+  }
+  tick(t){
+    const dt = Math.min(.05, (t - this.last) / 1000); this.last = t;
+    if (!this.static && this.items.length) {
+      if (!REDUCE && !this.hover && !this.hold && !this.drag && !document.body.classList.contains("detail-open")) this.offset += this.speed * dt;
+      this.offset += this.vel * dt; this.vel *= Math.pow(.18, dt);
+      if (Math.abs(this.vel) < 1) this.vel = 0;
+    }
+    this.draw();
+    requestAnimationFrame(t2 => this.tick(t2));
+  }
+  draw(){
+    const N = this.items.length; if (!N) return;
+    const w = this.root.clientWidth; let keys;
+    if (this.static) keys = [...Array(N).keys()];
+    else { const first = Math.floor(this.offset / SLOT) - 1; keys = Array.from({ length: Math.ceil(w / SLOT) + 3 }, (_, i) => first + i); }
+    const want = new Set(keys);
+    this.pool.forEach((el, k) => { if (!want.has(k)) { el.remove(); this.pool.delete(k); } });
+    for (const k of keys) {
+      let el = this.pool.get(k);
+      if (!el) { el = makeBook(this.items[((k % N) + N) % N]); this.track.append(el); this.pool.set(k, el); }
+      const x = this.static ? 40 + k * SLOT : k * SLOT - this.offset;
+      const tx = `translateX(${x.toFixed(1)}px)`;
+      if (el._tx !== tx) { el.style.transform = tx; el.style.setProperty("--x", tx); el._tx = tx; }
+    }
+  }
+  firstSlotRect(){ const r = this.root.getBoundingClientRect(); return { left:r.left + 40, bottom:r.bottom - 6 }; }
+}
+function makeBook(item){
+  const color = colorCache.get(item.cover) || PALETTE[hash(item.title) % PALETTE.length];
+  const el = document.createElement("button");
+  el.className = "b3d"; el.dataset.key = item.key; if (item.cover) el.dataset.cover = item.cover;
+  el.setAttribute("aria-label", item.title);
+  el.style.cssText = `--w:118px;--h:${item.h}px;--d:${item.d}px;--spine:${color};--spine-ink:${inkFor(color)}`;
+  el.innerHTML = `<span class="shadow"></span><div class="float" style="animation-delay:-${(hash(item.key) % 90) / 10}s"><div class="bk"><div class="face back"></div><div class="face topf"></div><div class="face pages"></div>
+    <div class="face spine"><span>${esc(item.title)}</span></div>
+    <div class="face front">${item.cover ? `<img src="${esc(item.cover)}" alt="" loading="lazy" draggable="false">` : ""}</div></div></div>`;
+  sampleSpine(item.cover);
+  return el;
+}
+
+/* ---------- Hover card ---------- */
+const meta = $("#meta"); let metaFor = null;
+function metaHTML(item, info){
+  const s = item.src, look = v => v ?? (info ? "Not listed" : "Looking up…");
+  if (item.kind === "rec") return `<h4>${esc(s.title)}</h4><p class="by">${esc(s.author || "Unknown author")}</p>
+    <dl><dt>Year</dt><dd>${s.year || "Not listed"}</dd><dt>Binding</dt><dd>Not listed</dd><dt>Recommended by</dt><dd>${esc(s.recommended_by || "A visitor")}</dd></dl>
+    ${s.genres ? `<div class="tags">${s.genres.split(",").slice(0,4).map(g => `<span>${esc(g.trim())}</span>`).join("")}</div>` : ""}`;
+  const genres = [s.category, ...((info && info.subjects) || [])].filter(Boolean);
+  return `<h4>${esc(s.title)}</h4><p class="by">${info ? esc(info.author || "Author not listed") : "Looking up the author…"}</p>
+    <dl><dt>Year</dt><dd>${esc(look(info && info.year))}</dd><dt>Binding</dt><dd>${esc(look(info && info.binding))}</dd><dt>Rating</dt><dd>${stars(s.rating)}</dd><dt>Price</dt><dd>${gbp(s.price_incl_tax)}</dd></dl>
+    <div class="tags">${genres.map(g => `<span>${esc(g)}</span>`).join("")}</div>`;
+}
+function placeMeta(el){
+  const r = el.querySelector(".front").getBoundingClientRect();
+  const mw = 280, mh = meta.offsetHeight || 220;
+  let left = r.left + r.width / 2 - mw / 2, top = r.top - mh - 14;
+  if (top < 70) top = Math.min(innerHeight - mh - 10, r.bottom + 14);
+  left = Math.max(10, Math.min(innerWidth - mw - 10, left));
+  meta.style.left = left + "px"; meta.style.top = top + "px";
+}
+function showMeta(el, item){
+  if (!item || document.body.classList.contains("detail-open")) return;
+  metaFor = item.key;
+  const cached = item.kind === "book" ? olCache[item.src.upc] : true;
+  meta.innerHTML = metaHTML(item, cached);
+  meta.classList.add("show");
+  setTimeout(() => metaFor === item.key && placeMeta(el), 170);
+  placeMeta(el);
+  if (item.kind === "book" && !cached) enrich(item.src).then(info => { if (metaFor === item.key) { meta.innerHTML = metaHTML(item, info); placeMeta(el); } });
+}
+function hideMeta(){ metaFor = null; meta.classList.remove("show"); }
+
+/* ---------- Detail view: the book slides out ---------- */
+async function openDetail(el, item){
+  hideMeta();
+  const s = item.src;
+  if (!REDUCE) { el.classList.add("pull"); await sleep(650); }
+  const from = el.querySelector(".front").getBoundingClientRect();
+  document.body.classList.add("detail-open");
+  const info = item.kind === "book" ? (olCache[s.upc] || null) : null;
+  const ov = $("#overlay");
+  ov.innerHTML = `<div class="detail" role="dialog" aria-modal="true" aria-label="${esc(s.title)}" data-close>
+    <div class="inner">
+      <img class="cover hide" src="${esc(item.cover || "")}" alt="Cover of ${esc(s.title)}">
+      <div class="text">
+        <h2>${esc(s.title)}</h2>
+        <p class="by" id="dby">${item.kind === "rec" ? esc(s.author || "Unknown author") + (s.year ? `, ${s.year}` : "") : info ? esc(info.author || "Author not listed") + (info.year ? `, ${info.year}` : "") : "&nbsp;"}</p>
+        ${item.kind === "book" ? `<dl>
+          <dt>Rating</dt><dd>${stars(s.rating)}</dd><dt>Price</dt><dd>${gbp(s.price_incl_tax)}</dd>
+          <dt>Availability</dt><dd>${s.in_stock ? `In stock, ${s.stock_quantity ?? "?"} ${s.stock_quantity === 1 ? "copy" : "copies"}` : "Out of stock"}</dd>
+          <dt>Binding</dt><dd id="dbind">${esc(info ? (info.binding || "Not listed") : "Looking up…")}</dd></dl>
+          <div class="tags" id="dtags">${[s.category, ...((info && info.subjects) || [])].map(g => `<span>${esc(g)}</span>`).join("")}</div>
+          <div class="desc">${esc(s.description || "This book has no description.")}</div>`
+        : `${s.note ? `<p class="note">“${esc(s.note)}”</p>` : ""}<dl><dt>Recommended by</dt><dd>${esc(s.recommended_by || "A visitor")}</dd><dt>Added</dt><dd class="label" style="color:var(--ink-soft)">${new Date(s.created_at).toLocaleDateString(undefined,{ day:"numeric", month:"short", year:"numeric" })}</dd></dl>
+          ${s.genres ? `<div class="tags">${s.genres.split(",").slice(0,5).map(g => `<span>${esc(g.trim())}</span>`).join("")}</div>` : ""}`}
+        <div class="actions" style="margin-top:1.25rem">
+          <button class="btn brass" data-close>Back to the shelf</button>
+          ${item.kind === "book" && s.product_url ? `<a class="btn" style="text-decoration:none" href="${esc(s.product_url)}" target="_blank" rel="noopener">Original page</a>` : ""}
+          ${item.kind === "rec" && s.ol_key ? `<a class="btn" style="text-decoration:none" href="https://openlibrary.org${esc(s.ol_key)}" target="_blank" rel="noopener">See on Open Library</a>` : ""}
+        </div>
+      </div>
+    </div></div>`;
+  const d = ov.querySelector(".detail"), cover = d.querySelector(".cover");
+  requestAnimationFrame(() => d.classList.add("show"));
+  const to = cover.getBoundingClientRect();
+  if (!REDUCE && item.cover && from.width) {
+    const fly = Object.assign(document.createElement("img"), { src:item.cover, className:"flyer" });
+    Object.assign(fly.style, { left:to.left+"px", top:to.top+"px", width:to.width+"px", height:to.height+"px" });
+    document.body.append(fly);
+    await fly.animate([
+      { transform:`translate(${from.left - to.left}px,${from.top - to.top}px) scale(${from.width / to.width},${from.height / to.height})`, transformOrigin:"0 0" },
+      { transform:"none", transformOrigin:"0 0" }
+    ], { duration:1100, easing:"cubic-bezier(.33,0,.15,1)" }).finished.catch(() => {});
+    fly.remove();
+  }
+  cover.classList.remove("hide");
+  d.querySelector("button.brass").focus();
+  d.onclick = e => { if (e.target === d || e.target.closest("button[data-close]")) closeDetail(el); };
+  if (item.kind === "book" && !info) enrich(s).then(i => {
+    if (!$("#dby")) return;
+    $("#dby").textContent = (i.author || "Author not listed") + (i.year ? `, ${i.year}` : "");
+    $("#dbind").textContent = i.binding || "Not listed";
+    $("#dtags").innerHTML = [s.category, ...(i.subjects || [])].map(g => `<span>${esc(g)}</span>`).join("");
+  });
+}
+function closeDetail(el){
+  const d = $(".detail"); if (!d) return;
+  d.classList.remove("show"); document.body.classList.remove("detail-open");
+  el && el.classList.remove("pull");
+  setTimeout(() => $("#overlay").innerHTML = "", 300);
+}
+
+/* ---------- Filtering & AI search ---------- */
+function visibleBooks(){
+  let list = S.books;
+  if (S.genre) list = list.filter(b => b.category === S.genre);
+  const a = S.ai; if (!a) return list;
+  if (a.genres && a.genres.length) list = list.filter(b => a.genres.includes(b.category));
+  if (a.min_rating) list = list.filter(b => (b.rating || 0) >= a.min_rating);
+  if (a.max_price != null) list = list.filter(b => (b.price_incl_tax ?? 0) <= a.max_price);
+  if (a.min_price != null) list = list.filter(b => (b.price_incl_tax ?? 0) >= a.min_price);
+  const words = (a.keywords || []).map(w => w.toLowerCase()).filter(Boolean);
+  let scored = list.map(b => { const t = b.title.toLowerCase(), d = (b.description || "").toLowerCase(), c = b.category.toLowerCase();
+    return [b, words.reduce((s, w) => s + (t.includes(w) ? 4 : 0) + (c.includes(w) ? 2 : 0) + (d.includes(w) ? 1 : 0), 0)]; });
+  if (words.length && a.strict) scored = scored.filter(x => x[1] > 0);
+  else if (words.length && scored.some(x => x[1] > 0) && !(a.genres && a.genres.length)) scored = scored.filter(x => x[1] > 0);
+  const sorts = { rating:(x,y)=>(y[0].rating||0)-(x[0].rating||0), price_asc:(x,y)=>(x[0].price_incl_tax||0)-(y[0].price_incl_tax||0), price_desc:(x,y)=>(y[0].price_incl_tax||0)-(x[0].price_incl_tax||0), relevance:(x,y)=>y[1]-x[1] };
+  return scored.sort(sorts[a.sort] || sorts.relevance).map(x => x[0]);
+}
+async function ask(q){
+  const btn = $("#askBtn"); btn.disabled = true; btn.textContent = "Thinking…";
+  let result;
+  try {
+    const r = await api("/functions/v1/ask-library", { method:"POST", body:JSON.stringify({ query:q, genres:S.genres.map(g => g.name) }) });
+    const data = await r.json();
+    if (!r.ok || data.error) throw new Error(data.error || r.status);
+    result = data;
+  } catch (err) {
+    console.warn("AI search unavailable, using word matching:", err);
+    const words = q.toLowerCase().replace(/[^a-z0-9£ ]+/g, " ").split(/\s+/).filter(w => w.length > 2 && !["the","and","for","with","something","book","books","looking","want","about","that"].includes(w));
+    const genres = S.genres.map(g => g.name).filter(g => words.some(w => g.toLowerCase().includes(w)));
+    result = { genres, keywords:words, strict:!genres.length, sort:"relevance", message:`Books matching “${q}”.` };
+  }
+  S.ai = result; S.genre = "";
+  btn.disabled = false; btn.textContent = "Ask";
+  refresh();
+}
+
+/* ---------- Page ---------- */
+let mainRail, recRail;
+function renderPage(){
+  $("#app").innerHTML = `
+  <section class="ask">
+    <h2>What are you looking for?</h2>
+    <form class="askbox" id="askForm" role="search">
+      <label class="sr" for="askInput">Describe the book you want</label>
+      <input id="askInput" placeholder="Try “a funny mystery under £20” or “poetry about the sea”" autocomplete="off" maxlength="300">
+      <button class="btn brass" id="askBtn">Ask</button>
+    </form>
+    <p class="answer" id="answer" aria-live="polite"></p>
+  </section>
+  <nav class="pills" id="pills" aria-label="Genres"></nav>
+  <div class="rail" id="mainRail"><div class="track"></div><div class="rail-empty" hidden>No books match. Try another genre or a broader question.</div>
+    <button class="arrow l" aria-label="Scroll left">‹</button><button class="arrow r" aria-label="Scroll right">›</button></div>
+  <div class="plank"></div>
+  <p class="caption" id="caption"></p>
+
+  <div class="shelf-title"><h3>Recommended to me</h3><p>Books visitors think I should read.</p><button class="btn" id="openRec2">Recommend a book</button></div>
+  <div class="rail small" id="recRail"><div class="track"></div><div class="rail-empty" hidden>No recommendations yet. Be the first to suggest a book.</div>
+    <button class="arrow l" aria-label="Scroll left">‹</button><button class="arrow r" aria-label="Scroll right">›</button></div>
+  <div class="plank"></div>`;
+  mainRail = new Rail($("#mainRail"), { speed:13 });
+  recRail = new Rail($("#recRail"), { speed:-8 });
+  $("#askForm").onsubmit = e => { e.preventDefault(); const q = $("#askInput").value.trim(); if (q) ask(q); };
+  $("#pills").onclick = e => { const p = e.target.closest(".pill"); if (!p) return; S.genre = p.dataset.genre; S.ai = null; $("#askInput").value = ""; refresh(); };
+  $("#answer").onclick = e => { if (e.target.id === "clearAi") { S.ai = null; $("#askInput").value = ""; refresh(); } };
+  $("#openRec2").onclick = openRecommend;
+}
+function refresh(){
+  const list = visibleBooks();
+  const aiGenre = S.ai && S.ai.genres && S.ai.genres.length === 1 ? S.ai.genres[0] : null;
+  const active = S.genre || aiGenre || (S.ai ? null : "");
+  $("#pills").innerHTML = [["", "All books", S.books.length], ...S.genres.map(g => [g.name, g.name, g.books.length])]
+    .map(([v, l, n]) => `<button class="pill" data-genre="${esc(v)}" aria-pressed="${active === v}">${esc(l)}<span>${n}</span></button>`).join("");
+  $("#answer").innerHTML = S.ai ? `${esc(S.ai.message || "Here’s what I found.")} <button class="link" id="clearAi">Show everything</button>` : "";
+  $("#caption").innerHTML = `<span class="label">${list.length.toLocaleString()} ${list.length === 1 ? "book" : "books"}</span>Hover to look closer, click to pull one out, drag to wander.`;
+  mainRail.setItems(list.map(bookItem));
+}
+function renderRecs(){ recRail.setItems(S.recs.map(recItem)); }
+
+/* ---------- Recommend a book ---------- */
+let chosen = null, searchTimer;
+function openRecommend(){
+  chosen = null;
+  $("#overlay").innerHTML = `<div class="scrim" data-x></div>
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="recTitle">
+    <button class="btn close" data-x>Close</button>
+    <h3 id="recTitle">Recommend a book</h3>
+    <p class="sub">Search any real book. It goes onto the Recommended to me shelf for everyone to see.</p>
+    <div id="recBody"></div>
+  </aside>`;
+  $("#overlay").onclick = e => { if (e.target.closest("[data-x]")) closeRecommend(); };
+  stepSearch();
+}
+function closeRecommend(){ $("#overlay").innerHTML = ""; $("#overlay").onclick = null; }
+function stepSearch(q = ""){
+  $("#recBody").innerHTML = `<label class="field"><span class="label">Title or author</span><input id="olq" value="${esc(q)}" placeholder="e.g. The Remains of the Day" autocomplete="off"></label>
+    <p class="msg" id="olmsg" aria-live="polite"></p><div class="results" id="olres"></div>`;
+  $("#recBody").style.cssText = "display:flex;flex-direction:column;flex:1;min-height:0";
+  const input = $("#olq"); input.focus();
+  input.oninput = () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => olSearch(input.value.trim()), 350); };
+  if (q) olSearch(q);
+}
+let lastDocs = [];
+async function olSearch(q){
+  const msg = $("#olmsg"), res = $("#olres");
+  if (q.length < 2) { res.innerHTML = ""; msg.textContent = ""; return; }
+  msg.textContent = "Searching Open Library…";
+  try {
+    const r = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=12&fields=key,title,author_name,first_publish_year,cover_i,subject`);
+    const docs = (await r.json()).docs || [];
+    if ($("#olq")?.value.trim() !== q) return;
+    lastDocs = docs;
+    msg.textContent = docs.length ? "" : "No books found. Try the title with fewer words.";
+    res.innerHTML = docs.map((d, i) => `<button class="result" data-i="${i}">
+      ${d.cover_i ? `<img src="https://covers.openlibrary.org/b/id/${d.cover_i}-S.jpg" alt="" loading="lazy">` : `<span class="noimg"></span>`}
+      <span><b>${esc(d.title)}</b><span style="color:var(--ink-soft);font-size:.85rem">${esc((d.author_name||["Unknown author"]).slice(0,2).join(", "))}</span>${d.first_publish_year ? ` <span class="label">${d.first_publish_year}</span>` : ""}</span></button>`).join("");
+    res.onclick = e => { const b = e.target.closest(".result"); if (b) stepSend(lastDocs[+b.dataset.i], q); };
+  } catch (_) { msg.textContent = "Couldn’t reach Open Library. Check your connection and try again."; msg.className = "msg err"; }
+}
+function stepSend(d, q){
+  chosen = { title:d.title.slice(0,300), author:(d.author_name||[]).slice(0,2).join(", ").slice(0,300) || null, year:d.first_publish_year || null,
+    genres:(d.subject||[]).filter(s => s.length < 28).slice(0,5).join(", ").slice(0,300) || null,
+    cover_url:d.cover_i ? `https://covers.openlibrary.org/b/id/${d.cover_i}-L.jpg` : null, ol_key:d.key || null };
+  $("#recBody").innerHTML = `<div class="chosen">${chosen.cover_url ? `<img id="chosenImg" src="${chosen.cover_url.replace("-L.jpg","-M.jpg")}" alt="">` : `<img id="chosenImg" alt="">`}
+      <div><b>${esc(chosen.title)}</b><span style="font:italic 400 1.1rem var(--serif);color:var(--ink-soft)">${esc(chosen.author || "Unknown author")}</span>${chosen.year ? `<br><span class="label">${chosen.year}</span>` : ""}<br>
+      <button class="link" id="pickAgain" style="margin-top:.5rem">Choose a different book</button></div></div>
+    <label class="field"><span class="label">Your name, optional</span><input id="recBy" maxlength="60" autocomplete="name"></label>
+    <label class="field"><span class="label">Why should I read it? Optional</span><textarea id="recNote" maxlength="500"></textarea></label>
+    <button class="btn brass" id="sendRec">Send recommendation</button><p class="msg" id="sendMsg" aria-live="polite"></p>`;
+  $("#pickAgain").onclick = () => stepSearch(q);
+  $("#sendRec").onclick = sendRecommendation;
+}
+async function sendRecommendation(){
+  const btn = $("#sendRec"), msg = $("#sendMsg");
+  btn.disabled = true; btn.textContent = "Sending…"; msg.className = "msg"; msg.textContent = "";
+  const row = { ...chosen, recommended_by:$("#recBy").value.trim().slice(0,60) || null, note:$("#recNote").value.trim().slice(0,500) || null };
+  try {
+    const r = await api("/rest/v1/recommendations", { method:"POST", headers:{ Prefer:"return=representation" }, body:JSON.stringify(row) });
+    if (!r.ok) throw new Error(`status ${r.status}: ${await r.text()}`);
+    const [saved] = await r.json();
+    const img = $("#chosenImg"), from = img.getBoundingClientRect();
+    closeRecommend();
+    await flyToShelf(chosen.cover_url, from);
+    S.recs.unshift(saved); renderRecs();
+    const first = recRail.pool.get(0); if (first && !REDUCE) { first.classList.add("arrive"); setTimeout(() => first.classList.remove("arrive"), 800); }
+  } catch (err) {
+    btn.disabled = false; btn.textContent = "Send recommendation";
+    msg.className = "msg err"; msg.textContent = `Couldn’t send it (${err.message.slice(0,120)}). The recommendations table may not be set up yet.`;
+  }
+}
+async function flyToShelf(url, from){
+  const rail = $("#recRail");
+  rail.scrollIntoView({ behavior:REDUCE ? "auto" : "smooth", block:"center" });
+  await sleep(REDUCE ? 0 : 450);
+  if (REDUCE || !url || !from.width) return;
+  const t = recRail.firstSlotRect(), w = 118, h = 177;
+  const fly = Object.assign(document.createElement("img"), { src:url, className:"flyer" });
+  Object.assign(fly.style, { left:from.left+"px", top:from.top+"px", width:from.width+"px", height:from.height+"px" });
+  document.body.append(fly);
+  const dx = t.left - from.left, dy = (t.bottom - h) - from.top;
+  await fly.animate([
+    { transform:"none", offset:0 },
+    { transform:`translate(${dx * .5}px,${dy * .5 - 70}px) scale(${(w / from.width + 1) / 2})`, offset:.5 },
+    { transform:`translate(${dx}px,${dy}px) scale(${w / from.width},${h / from.height})` }
+  ], { duration:1700, easing:"cubic-bezier(.45,0,.2,1)" }).finished.catch(() => {});
+  fly.remove();
+}
+
+/* ---------- Keyboard & start ---------- */
+document.addEventListener("keydown", e => { if (e.key !== "Escape") return; if ($(".detail")) closeDetail($(".b3d.pull")); else if ($(".drawer")) closeRecommend(); });
+$("#openRec").onclick = () => openRecommend();
+
+async function loadAll(path){
+  const all = [];
+  for (let from = 0; ; from += 1000) {
+    const r = await api(`${path}${path.includes("?") ? "&" : "?"}limit=1000&offset=${from}`);
+    if (!r.ok) throw new Error(`Supabase replied with status ${r.status}: ${await r.text()}`);
+    const rows = await r.json(); all.push(...rows);
+    if (rows.length < 1000) return all;
+  }
+}
+(async () => {
+  try {
+    const books = await loadAll("/rest/v1/books?select=*&order=id.asc");
+    if (!books.length) {
+      $("#app").innerHTML = `<div class="status"><h2>The shelves are empty</h2><p>The site is connected, but it can’t see any books yet. In the SQL Editor run <code>select count(*) from public.books;</code>. If it says 0, run the five scrape batches. If it says 1000, re-create the “Public can read books” policy. Then reload.</p></div>`;
+      return;
+    }
+    S.books = books.map(b => ({ ...b, category:b.category || "Uncategorised", price_incl_tax:b.price_incl_tax == null ? null : Number(b.price_incl_tax) }));
+    const groups = {}; S.books.forEach(b => (groups[b.category] ||= []).push(b));
+    S.genres = Object.entries(groups).map(([name, list]) => ({ name, books:list })).sort((a, b) => b.books.length - a.books.length);
+    renderPage(); refresh();
+    try { S.recs = await loadAll("/rest/v1/recommendations?select=*&order=created_at.desc"); } catch (err) { console.warn("Recommendations not available yet:", err); }
+    renderRecs();
+  } catch (err) {
+    $("#app").innerHTML = `<div class="status"><h2>Couldn’t reach the catalogue</h2><p>${esc(err.message)}</p><p>Check that the publishable key belongs to the project <code>sgnazidypdfkgduggrvl</code>.</p></div>`;
+  }
+})();
+</script>
+</body>
+</html>
