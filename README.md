@@ -10,7 +10,7 @@ The Library is a project for practising the full path from collecting data to sh
 
 ## Data collection
 
-1. **Book catalogue (scraped).** The `scrape-books` Supabase Edge Function ([`supabase/functions/scrape-books/index.ts`](supabase/functions/scrape-books/index.ts)) reads [Books to Scrape](https://books.toscrape.com), a sandbox site built for scraping practice. For each book it collects the UPC, title, category, prices, tax, stock, star rating, number of reviews, description, cover image and page URL, and upserts it into the `books` table. It is run in five batches by [`scripts/run-scraper.sh`](scripts/run-scraper.sh) and is protected by a shared secret.
+1. **Book catalogue (scraped).** The `scrape-books` Supabase Edge Function ([`supabase/functions/scrape-books/index.ts`](supabase/functions/scrape-books/index.ts)) reads [Books to Scrape](https://books.toscrape.com), a sandbox site built for scraping practice. For each book it collects the UPC, title, category, prices, tax, stock, star rating, number of reviews, description, cover image and page URL, and upserts it into the `books` table. It is run in five batches by [`scripts/run-scraper.sh`](scripts/run-scraper.sh).
 2. **Extra book details (Open Library).** When a visitor looks at a book, the page searches [Open Library](https://openlibrary.org) by title to show the author, first publication year, binding and subjects.
 3. **Visitor recommendations.** Visitors search Open Library for a book and can add an optional name and note. The page saves the title, author, year, subjects, Open Library cover and link, name and note to the `recommendations` table.
 
@@ -40,13 +40,12 @@ The schema and access rules are in [`supabase/migrations/`](supabase/migrations/
 Requirements: a free [Supabase](https://supabase.com) project, the [Supabase CLI](https://supabase.com/docs/guides/cli) to deploy the function, and `bash` and `curl` to run the scraper.
 
 1. **Database:** in the Supabase SQL Editor, run `supabase/migrations/001_books.sql` and `supabase/migrations/002_recommendations.sql`. Optionally run `supabase/seed.sql` for one test row.
-2. **Scraper secret:** in Edge Functions -> Secrets, add `SCRAPER_SECRET` with a long random value.
-3. **Deploy the scraper:** `supabase functions deploy scrape-books --no-verify-jwt`.
-4. **Configure:** copy `.env.example` to `.env` and fill in your project URL, publishable key and the same `SCRAPER_SECRET`. `.env` is ignored by Git.
-5. **Load the books:** `bash scripts/run-scraper.sh`.
-6. **Front end:** in `index.html`, set `SUPABASE_URL` and `SUPABASE_KEY` (the publishable key) in the `SETTINGS` block, then open the file in a browser or publish it with GitHub Pages.
+2. **Deploy the scraper:** `supabase functions deploy scrape-books --no-verify-jwt`.
+3. **Configure:** copy `.env.example` to `.env` and fill in your project URL and publishable key. `.env` is ignored by Git.
+4. **Load the books:** `bash scripts/run-scraper.sh`.
+5. **Front end:** in `index.html`, set `SUPABASE_URL` and `SUPABASE_KEY` (the publishable key) in the `SETTINGS` block, then open the file in a browser or publish it with GitHub Pages.
 
-The publishable key is designed to be public: it only allows what the database's row-level security rules permit. Never put the service role key or the scraper secret in `index.html`.
+The publishable key is designed to be public: it only allows what the database's row-level security rules permit. Never put the service role key in `index.html`.
 
 More detail: [`supabase/README.md`](supabase/README.md).
 
@@ -70,6 +69,7 @@ This project practises:
 - **Recommendations are not moderated.** Anyone can add one, and names and notes are public. Spam would need to be removed by hand in Supabase.
 - **The catalogue is fictional practice data.** Books to Scrape prices, stock and ratings are made up.
 - **Fonts load from Google Fonts**, which sends visitors' IP addresses to Google.
+- **The scraper has no password.** Anyone who finds its URL can run it; it only re-loads data from Books to Scrape.
 - **Needs JavaScript and a modern browser.**
 
 ## Credits and licence
