@@ -445,13 +445,8 @@ function visibleBooks(){
 async function ask(q){
   const btn = $("#askBtn"); btn.disabled = true; btn.textContent = "Thinking…";
   let result;
-  try {
-    const r = await api("/functions/v1/ask-library", { method:"POST", body:JSON.stringify({ query:q, genres:S.genres.map(g => g.name) }) });
-    const data = await r.json();
-    if (!r.ok || data.error) throw new Error(data.error || r.status);
-    result = data;
-  } catch (err) {
-    console.warn("AI search unavailable, using word matching:", err);
+  // Keyword search: matches genre names, then scores titles, categories and descriptions.
+  {
     const words = q.toLowerCase().replace(/[^a-z0-9£ ]+/g, " ").split(/\s+/).filter(w => w.length > 2 && !["the","and","for","with","something","book","books","looking","want","about","that"].includes(w));
     const genres = S.genres.map(g => g.name).filter(g => words.some(w => g.toLowerCase().includes(w)));
     result = { genres, keywords:words, strict:!genres.length, sort:"relevance", message:`Books matching “${q}”.` };
@@ -469,7 +464,7 @@ function renderPage(){
     <h2>What are you looking for?</h2>
     <form class="askbox" id="askForm" role="search">
       <label class="sr" for="askInput">Describe the book you want</label>
-      <input id="askInput" placeholder="Try “a funny mystery under £20” or “poetry about the sea”" autocomplete="off" maxlength="300">
+      <input id="askInput" placeholder="Try “mystery”, “travel” or “poetry about the sea”" autocomplete="off" maxlength="300">
       <button class="btn brass" id="askBtn">Ask</button>
     </form>
     <p class="answer" id="answer" aria-live="polite"></p>
@@ -550,6 +545,7 @@ function stepSend(d, q){
   $("#recBody").innerHTML = `<div class="chosen">${chosen.cover_url ? `<img id="chosenImg" src="${chosen.cover_url.replace("-L.jpg","-M.jpg")}" alt="">` : `<img id="chosenImg" alt="">`}
       <div><b>${esc(chosen.title)}</b><span style="font:italic 400 1.1rem var(--serif);color:var(--ink-soft)">${esc(chosen.author || "Unknown author")}</span>${chosen.year ? `<br><span class="label">${esc(chosen.year)}</span>` : ""}<br>
       <button class="link" id="pickAgain" style="margin-top:.5rem">Choose a different book</button></div></div>
+    <p class="sub">Your name and note will be shown publicly on the shelf.</p>
     <label class="field"><span class="label">Your name, optional</span><input id="recBy" maxlength="60" autocomplete="name"></label>
     <label class="field"><span class="label">Why should I read it? Optional</span><textarea id="recNote" maxlength="500"></textarea></label>
     <button class="btn brass" id="sendRec">Send recommendation</button><p class="msg" id="sendMsg" aria-live="polite"></p>`;

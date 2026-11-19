@@ -2,6 +2,10 @@
 .DS_Store
 Thumbs.db
 
+# Editor settings
+.vscode/
+.idea/
+
 # Environment and secrets
 .env
 .env.*
@@ -12,6 +16,7 @@ node_modules/
 
 # Supabase local files
 supabase/.temp/
+supabase/.branches/
 
 # Python caches
 __pycache__/
