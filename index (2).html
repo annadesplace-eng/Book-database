@@ -199,6 +199,10 @@ const S = { books:[], genres:[], genre:"", ai:null, recs:[] };
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+// Only trust cover images hosted by Open Library covers.
+const safeCover = u => typeof u === "string" && u.startsWith("https://covers.openlibrary.org/") ? u : null;
+// Only link to Open Library work or edition pages.
+const safeOlKey = k => typeof k === "string" && /^\/(works|books)\/[A-Za-z0-9]+$/.test(k) ? k : null;
 const hash = s => { let h = 2166136261; for (const c of String(s)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
 const gbp = n => n == null ? "–" : "£" + Number(n).toFixed(2);
 const stars = r => r ? `<span class="stars" aria-label="${r} out of 5 stars">${"★".repeat(r)}<span class="off">${"★".repeat(5-r)}</span></span>` : "Not rated";
@@ -258,7 +262,7 @@ function enrich(book){
 
 /* ---------- Items shown on rails ---------- */
 const bookItem = b => ({ key:"b"+b.id, kind:"book", title:b.title, cover:b.image_url, h:176 + hash(b.title) % 22, d:Math.round(18 + Math.min((b.description||"").length, 1600) / 1600 * 22), src:b });
-const recItem = r => ({ key:"r"+r.id, kind:"rec", title:r.title, cover:r.cover_url, h:180 + hash(r.title) % 18, d:28, src:r });
+const recItem = r => ({ key:"r"+r.id, kind:"rec", title:r.title, cover:safeCover(r.cover_url), h:180 + hash(r.title) % 18, d:28, src:r });
 
 /* ---------- Infinite 3D rail ---------- */
 class Rail {
@@ -334,7 +338,7 @@ const meta = $("#meta"); let metaFor = null;
 function metaHTML(item, info){
   const s = item.src, look = v => v ?? (info ? "Not listed" : "Looking up…");
   if (item.kind === "rec") return `<h4>${esc(s.title)}</h4><p class="by">${esc(s.author || "Unknown author")}</p>
-    <dl><dt>Year</dt><dd>${s.year || "Not listed"}</dd><dt>Binding</dt><dd>Not listed</dd><dt>Recommended by</dt><dd>${esc(s.recommended_by || "A visitor")}</dd></dl>
+    <dl><dt>Year</dt><dd>${esc(s.year || "Not listed")}</dd><dt>Binding</dt><dd>Not listed</dd><dt>Recommended by</dt><dd>${esc(s.recommended_by || "A visitor")}</dd></dl>
     ${s.genres ? `<div class="tags">${s.genres.split(",").slice(0,4).map(g => `<span>${esc(g.trim())}</span>`).join("")}</div>` : ""}`;
   const genres = [s.category, ...((info && info.subjects) || [])].filter(Boolean);
   return `<h4>${esc(s.title)}</h4><p class="by">${info ? esc(info.author || "Author not listed") : "Looking up the author…"}</p>
@@ -375,7 +379,7 @@ async function openDetail(el, item){
       <img class="cover hide" src="${esc(item.cover || "")}" alt="Cover of ${esc(s.title)}">
       <div class="text">
         <h2>${esc(s.title)}</h2>
-        <p class="by" id="dby">${item.kind === "rec" ? esc(s.author || "Unknown author") + (s.year ? `, ${s.year}` : "") : info ? esc(info.author || "Author not listed") + (info.year ? `, ${info.year}` : "") : "&nbsp;"}</p>
+        <p class="by" id="dby">${item.kind === "rec" ? esc(s.author || "Unknown author") + (s.year ? `, ${esc(s.year)}` : "") : info ? esc(info.author || "Author not listed") + (info.year ? `, ${esc(info.year)}` : "") : "&nbsp;"}</p>
         ${item.kind === "book" ? `<dl>
           <dt>Rating</dt><dd>${stars(s.rating)}</dd><dt>Price</dt><dd>${gbp(s.price_incl_tax)}</dd>
           <dt>Availability</dt><dd>${s.in_stock ? `In stock, ${s.stock_quantity ?? "?"} ${s.stock_quantity === 1 ? "copy" : "copies"}` : "Out of stock"}</dd>
@@ -387,7 +391,7 @@ async function openDetail(el, item){
         <div class="actions" style="margin-top:1.25rem">
           <button class="btn brass" data-close>Back to the shelf</button>
           ${item.kind === "book" && s.product_url ? `<a class="btn" style="text-decoration:none" href="${esc(s.product_url)}" target="_blank" rel="noopener">Original page</a>` : ""}
-          ${item.kind === "rec" && s.ol_key ? `<a class="btn" style="text-decoration:none" href="https://openlibrary.org${esc(s.ol_key)}" target="_blank" rel="noopener">See on Open Library</a>` : ""}
+          ${item.kind === "rec" && safeOlKey(s.ol_key) ? `<a class="btn" style="text-decoration:none" href="https://openlibrary.org${esc(safeOlKey(s.ol_key))}" target="_blank" rel="noopener">See on Open Library</a>` : ""}
         </div>
       </div>
     </div></div>`;
@@ -535,16 +539,16 @@ async function olSearch(q){
     msg.textContent = docs.length ? "" : "No books found. Try the title with fewer words.";
     res.innerHTML = docs.map((d, i) => `<button class="result" data-i="${i}">
       ${d.cover_i ? `<img src="https://covers.openlibrary.org/b/id/${d.cover_i}-S.jpg" alt="" loading="lazy">` : `<span class="noimg"></span>`}
-      <span><b>${esc(d.title)}</b><span style="color:var(--ink-soft);font-size:.85rem">${esc((d.author_name||["Unknown author"]).slice(0,2).join(", "))}</span>${d.first_publish_year ? ` <span class="label">${d.first_publish_year}</span>` : ""}</span></button>`).join("");
+      <span><b>${esc(d.title)}</b><span style="color:var(--ink-soft);font-size:.85rem">${esc((d.author_name||["Unknown author"]).slice(0,2).join(", "))}</span>${d.first_publish_year ? ` <span class="label">${esc(d.first_publish_year)}</span>` : ""}</span></button>`).join("");
     res.onclick = e => { const b = e.target.closest(".result"); if (b) stepSend(lastDocs[+b.dataset.i], q); };
   } catch (_) { msg.textContent = "Couldn’t reach Open Library. Check your connection and try again."; msg.className = "msg err"; }
 }
 function stepSend(d, q){
   chosen = { title:d.title.slice(0,300), author:(d.author_name||[]).slice(0,2).join(", ").slice(0,300) || null, year:d.first_publish_year || null,
     genres:(d.subject||[]).filter(s => s.length < 28).slice(0,5).join(", ").slice(0,300) || null,
-    cover_url:d.cover_i ? `https://covers.openlibrary.org/b/id/${d.cover_i}-L.jpg` : null, ol_key:d.key || null };
+    cover_url:d.cover_i ? `https://covers.openlibrary.org/b/id/${d.cover_i}-L.jpg` : null, ol_key:safeOlKey(d.key) };
   $("#recBody").innerHTML = `<div class="chosen">${chosen.cover_url ? `<img id="chosenImg" src="${chosen.cover_url.replace("-L.jpg","-M.jpg")}" alt="">` : `<img id="chosenImg" alt="">`}
-      <div><b>${esc(chosen.title)}</b><span style="font:italic 400 1.1rem var(--serif);color:var(--ink-soft)">${esc(chosen.author || "Unknown author")}</span>${chosen.year ? `<br><span class="label">${chosen.year}</span>` : ""}<br>
+      <div><b>${esc(chosen.title)}</b><span style="font:italic 400 1.1rem var(--serif);color:var(--ink-soft)">${esc(chosen.author || "Unknown author")}</span>${chosen.year ? `<br><span class="label">${esc(chosen.year)}</span>` : ""}<br>
       <button class="link" id="pickAgain" style="margin-top:.5rem">Choose a different book</button></div></div>
     <label class="field"><span class="label">Your name, optional</span><input id="recBy" maxlength="60" autocomplete="name"></label>
     <label class="field"><span class="label">Why should I read it? Optional</span><textarea id="recNote" maxlength="500"></textarea></label>
