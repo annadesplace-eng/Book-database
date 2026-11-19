@@ -2,7 +2,7 @@
 
 A browsable 3D bookshelf of 1,000 books, stored in Supabase, with a second shelf where visitors can recommend books.
 
-**Live site:** https://annadesplace-eng.github.io/Book-database/
+**Live site:** https://annadesplace-eng.github.io/Bts/
 
 ## Purpose
 
