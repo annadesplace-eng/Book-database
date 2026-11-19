@@ -1,10 +1,6 @@
 // Supabase Edge Function: scrape-books
 // Scrapes pages "from" to "to" (20 books per page) and saves them.
 // Test with {"from": 1, "to": 10}, then 11-20, 21-30, 31-40, 41-50.
-//
-// Protected by a shared secret: set SCRAPER_SECRET in Supabase
-// (Edge Functions -> Secrets) and send it in the "x-scraper-secret" header.
-// If SCRAPER_SECRET is not set, every request is refused.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -84,12 +80,7 @@ async function scrapePage(page: number) {
   return books.length;
 }
 
-const SECRET = Deno.env.get("SCRAPER_SECRET");
-
 Deno.serve(async (req) => {
-  if (!SECRET || req.headers.get("x-scraper-secret") !== SECRET) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
   const body = await req.json().catch(() => ({}));
   const from = Math.max(1, Math.floor(Number(body.from ?? body.page ?? 1)) || 1);
   const to = Math.min(Math.floor(Number(body.to ?? from)) || from, 50);
